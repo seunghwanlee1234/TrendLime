@@ -1,0 +1,99 @@
+# # docker-compose.yml
+# yml 파일 포맷의 version 설정
+version: "3"
+
+# docker-compose 볼륨 정의
+# volumes:
+#   postgres_db_dev: {}
+
+# 띄울 컨테이너 목록
+services:
+  # Database container, 추후에 설명
+  # postgres:
+  #   container_name : postgres_service
+  #   image: postgres:9.5
+  #   volumes:
+  #     - postgres_db_dev:/var/lib/postgresql/data
+  #   environment: 
+  #     - POSTGRES_DB=leffedb
+  #     - POSTGRES_USER=leffe
+  #     - POSTGRES_PASSWORD=leffe
+  #     - POSTGRES_INITDB_ARGS=--encoding=UTF-8
+      
+
+  # nginx
+  nginx:
+      container_name: nginx
+      build: ./nginx
+      image: nginx
+      restart: always
+      ports:
+        - "80:80"
+      volumes:
+        # - ./server_dev:/srv/docker-server
+        - ./log:/var/log/nginx
+      depends_on:
+        - django
+
+
+  # Django container
+  django:
+    # 컨테이너 명
+    container_name : django
+    # docker build 옵션
+    build:
+      # # docker build 명령어를 실행할 디렉토리 경로
+       context: .
+       # # 지정할 Dockerfile 경로
+       dockerfile: ./Dockerfile
+    image: backend/django
+    # 환경 변수 설정 
+    # environment: 
+      # - POSTGRES_DB=leffedb
+      # - POSTGRES_USER=leffe
+      # - POSTGRES_PASSWORD=leffe
+      # - POSTGRES_HOST=postgres
+      # - POSTGRES_PORT=5432
+    # 작업 폴더 지정
+    working_dir : /home/
+    # 실행할 명령어
+    command: uwsgi --ini uwsgi.ini
+    # 현재 디렉토리를 컨테이너 내의 /home/에 mount
+    volumes: 
+      - ./:/server
+      - ./log:/var/log/uwsgis
+    # 호스트 OS와 컨테이너의 포트를 바인딩 
+    ports: 
+      - "8000:8000"
+    #depends_on:
+    #   - django
+    # 호스트 OS에 포트를 공개하지 않고 컨테이너만 포트를 공개 (현재는 주석)
+    #expose : 
+    #  - "8000"
+
+
+# version: '3'
+# services:
+
+#     nginx:
+#         container_name: nginx
+#         build: ./nginx
+#         image: nginx
+#         restart: always
+#         ports:
+#           - "80:80"
+#         volumes:
+#           - ./server_dev:/srv/docker-server
+#           - ./log:/var/log/nginx
+#         depends_on:
+#           - django
+
+#     django:
+#         container_name: django
+#         build: ..
+#         image: server/django
+#         restart: always
+#         command: uwsgi --ini uwsgi.ini
+#         volumes:
+#           - ./server_dev:/srv/docker-server
+#           - ./log:/var/log/uwsgi
